@@ -54,9 +54,6 @@ jobs:
           docker build . -t adenli/ntserver:$IMAGE_TAG
           docker push adenli/ntserver:$IMAGE_TAG
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-        
-      - name: Push to Docker Hub
-        run: docker push adenli/ntserver:latest
 
       # 6️⃣ Checkout the GitOps repo
       - name: Checkout GitOps repo
