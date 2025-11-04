@@ -1,0 +1,66 @@
+name: CI - Dev
+
+on:
+  push:
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "develop" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout your application code
+      - uses: actions/checkout@v3
+
+      # 2️⃣ Set up Node.js
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20.16.0
+
+      # 3️⃣ Install dependencies & build
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      # 4️⃣ Login to DockerHub
+      - name: Login to DockerHub
+        run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      # 5️⃣ Build and push the image
+      - name: Build & push dev image
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          IMAGE_TAG=dev-$SHA
+          docker build . -t adenli/ntserver:$IMAGE_TAG
+          docker push adenli/ntserever:$IMAGE_TAG
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+
+      # 6️⃣ Checkout the GitOps repo
+      - name: Checkout GitOps repo
+        uses: actions/checkout@v4
+        with:
+          repository: adenali20/expense-tracker-gitops
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          path: gitops
+
+
+      # 7️⃣ Update the image tag in the manifest
+      - name: Update image tag in GitOps repo
+        run: |
+          cd gitops/environments/dev/xp-tracker-web
+          sed -i "s|adenli/ntserver:.*|adenli/ntserver:${IMAGE_TAG}|" deployment-service.yml
+
+      # 8️⃣ Commit and push the change
+      - name: Commit and push changes
+        run: |
+          cd gitops
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Update dev image tag to ${IMAGE_TAG}"
+          git push origin main
