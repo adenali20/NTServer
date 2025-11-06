@@ -53,20 +53,40 @@ io.on("connection", (socket) => {
     socket.emit("receiveMessage", msg); // sender also sees it
   });
 
+  socket.on("endCall", ({ to }) => {
+    io.to(connectedUsers.get(to)).emit("callEnded");
+  });
+
+
   // Video call signaling
   socket.on("callUser", ({ to, offer, from }) => {
+	  
     const recipientSocketId = connectedUsers.get(to);
-    if (recipientSocketId) io.to(recipientSocketId).emit("incomingCall", { from, offer });
+	
+    if (recipientSocketId) {
+		
+		io.to(recipientSocketId).emit("incomingCall", { from, offer });
+		console.log("#emitting incomming call", {to,from});
+	}else{
+		console.log("not sent");
+	}
   });
 
   socket.on("answerCall", ({ to, answer }) => {
+	  console.log("#answerCall", {to});
     const recipientSocketId = connectedUsers.get(to);
     if (recipientSocketId) io.to(recipientSocketId).emit("callAnswered", { answer });
   });
 
   socket.on("iceCandidate", ({ to, candidate }) => {
+	 
     const recipientSocketId = connectedUsers.get(to);
-    if (recipientSocketId) io.to(recipientSocketId).emit("iceCandidate", { candidate });
+    if (recipientSocketId){
+		console.log("***iceCandidate", {to});
+		io.to(recipientSocketId).emit("iceCandidate", { candidate });
+	} else{
+		 console.log("***iceCandidate NOT SENT", {to});
+	}
   });
 
   // Disconnect
