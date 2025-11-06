@@ -50,7 +50,8 @@ io.on("connection", (socket) => {
     };
     const recipientSocketId = connectedUsers.get(to);
     if (recipientSocketId) io.to(recipientSocketId).emit("receiveMessage", msg);
-    socket.emit("receiveMessage", msg); // sender also sees it
+    console.log("set message ", {to});
+    // socket.emit("receiveMessage", msg); // sender also sees it
   });
 
   socket.on("endCall", ({ to }) => {
