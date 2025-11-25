@@ -55,6 +55,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("endCall", ({ to }) => {
+	console.log("✅ CallEnded:", to);
     io.to(connectedUsers.get(to)).emit("callEnded");
   });
 
