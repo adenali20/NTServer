@@ -54,7 +54,7 @@ io.on("connection", (socket) => {
     socket.emit("receiveMessage", msg); // sender also sees it
   });
 
-  socket.on("endCall", ({ to }) => {
+  socket.on("callEnded", ({ to }) => {
 	console.log("✅ CallEnded:", to);
     io.to(connectedUsers.get(to)).emit("callEnded");
   });
